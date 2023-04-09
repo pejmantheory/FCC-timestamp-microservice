@@ -18,15 +18,33 @@ app.get("/", function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
+const isInvalidDate = (date) => date.toUTCString() === "Invalid Date"
 
-// your first API endpoint... 
-app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
+// your first API endpoint...
+app.get("/api/:date?", function (req, res) { // Changed route path to include optional date parameter
+  const dateString = req.params.date;
+  let date;
+
+  if (dateString) {
+    const isTimestamp = /^\d+$/.test(dateString);
+    date = isTimestamp ? new Date(+dateString) : new Date(dateString);
+  } else {
+    date = new Date(); // Return current date when the date parameter is not provided
+  }
+
+  if (isInvalidDate(date)) {
+    res.json({error: "Invalid Date"})
+    return;
+  }
+
+  res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString()
+  });
 });
-
-
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
+
